@@ -17,9 +17,11 @@
 # MAGIC 2. In case the environment has cluster-policies that interfere with automated deployment, you may need to manually create the cluster in accordance with the workspace cluster policy. The `job_json` definition below still provides valuable information about the configuration these series of notebooks should run with. 
 # MAGIC 
 # MAGIC **Notes**
-# MAGIC 1. The pipelines, workflows and clusters created in this script are not user-specific. Keep in mind that rerunning this script again after modification resets them for other users too.
+# MAGIC 1. This accelerator requires you to set up your own source data. Databricks and Amperity are unable to provide public access fo its source data. Please review the `01-Amperity-ALS` notebook and set up your own source data with the structure of the `unified_itemized_transactions` source table, or follow the step-by-step guide to import Purchase History data from Amperity 
 # MAGIC 
-# MAGIC 2. If the job execution fails, please confirm that you have set up other environment dependencies as specified in the accelerator notebooks. Accelerators may require the user to set up additional cloud infra or secrets to manage credentials. 
+# MAGIC 2. The pipelines, workflows and clusters created in this script are not user-specific. Keep in mind that rerunning this script again after modification resets them for other users too.
+# MAGIC 
+# MAGIC 3. If the job execution fails, please confirm that you have set up other environment dependencies as specified in the accelerator notebooks. Accelerators may require the user to set up additional cloud infra or secrets to manage credentials. 
 
 # COMMAND ----------
 
@@ -37,33 +39,21 @@ job_json = {
         "max_concurrent_runs": 1,
         "tags": {
             "usage": "solacc_testing",
-            "group": "SOLACC",
-            "accelerator": "sample-solacc"
+            "group": "RCG",
+            "accelerator": "amperity-cdp-rec"
         },
         "tasks": [
             {
-                "job_cluster_key": "sample_solacc_cluster",
+                "job_cluster_key": "amperity_cdp_cluster",
                 "notebook_task": {
-                    "notebook_path": f"01_Introduction_And_Setup"
+                    "notebook_path": f"01-Amperity-ALS"
                 },
-                "task_key": "sample_solacc_01"
-            },
-            {
-                "job_cluster_key": "sample_solacc_cluster",
-                "notebook_task": {
-                    "notebook_path": f"02_Analysis"
-                },
-                "task_key": "sample_solacc_02",
-                "depends_on": [
-                    {
-                        "task_key": "sample_solacc_01"
-                    }
-                ]
+                "task_key": "amperity_cdp_01"
             }
         ],
         "job_clusters": [
             {
-                "job_cluster_key": "sample_solacc_cluster",
+                "job_cluster_key": "amperity_cdp_cluster",
                 "new_cluster": {
                     "spark_version": "11.3.x-cpu-ml-scala2.12",
                 "spark_conf": {
@@ -73,8 +63,8 @@ job_json = {
                     "node_type_id": {"AWS": "i3.xlarge", "MSA": "Standard_DS3_v2", "GCP": "n1-highmem-4"},
                     "custom_tags": {
                         "usage": "solacc_testing",
-                        "group": "SOLACC",
-                        "accelerator": "sample-solacc"
+                        "group": "RCG",
+                        "accelerator": "amperity-cdp-rec"
                     },
                 }
             }
