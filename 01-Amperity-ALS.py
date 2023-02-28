@@ -44,12 +44,16 @@ config['num_products_to_recommend'] = 25
 
 # COMMAND ----------
 
-# DBTITLE 1,Set Database
+# DBTITLE 1,Set Database and MLFlow Experiment
 # create database if not exists
 _ = spark.sql('create database if not exists {0}'.format(config['database']))
 
 # set current datebase context
 _ = spark.catalog.setCurrentDatabase(config['database'])
+
+# set mlflow experiment in the user's folder
+username = dbutils.notebook.entry_point.getDbutils().notebook().getContext().userName().get()
+mlflow.set_experiment('/Users/{}/amperity_als'.format(username))
 
 # COMMAND ----------
 
