@@ -3,23 +3,19 @@
 [![CLOUD](https://img.shields.io/badge/CLOUD-ALL-blue?logo=googlecloud&style=for-the-badge)](https://cloud.google.com/databricks)
 [![POC](https://img.shields.io/badge/POC-10_days-green?style=for-the-badge)](https://databricks.com/try-databricks)
 
-*Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.*
+The data in the Amperity customer data platform (CDP) is useful for enabling a wide range of customer experiences. Customer identity resolution, data cleansing, and data unification provided by Amperity provides a very accurate, first-party customer data foundation which can be used to drive a wide range of customer insights and customer engagements. 
+
+Using these data, we may wish to estimate customer lifetime value, derive behavioral segments and estimate product propensities, all capabilities we can tap into with the Amperity CDP. For some capabilities, such as the generation of per-user product recommendations, we need to develop specialized models leveraging capabilities such as those found in Databricks. 
+
+In this notebook, we will demonstrate how to publish customer purchase history data from the Amperity CDP to Databricks to enable the training of a simple matrix factorization model. Recommendations produced by the model will then be published back to the CDP to enable any number of personalized interactions with our customers.  This notebook will borrow heavily from the previously published notebooks on matrix factorization available [here](https://www.databricks.com/blog/2023/01/06/products-we-think-you-might-generating-personalized-recommendations.html). Those interested into diving in the details of building such a model should review those notebooks and the accompanying blog.
 
 ___
-<john.doe@databricks.com>
+<bryan.smith@databricks.com>
 
 ___
 
+&copy; 2023 Databricks, Inc. All rights reserved. The source in this notebook is provided subject to the Databricks License [https://databricks.com/db-license-source].  All included or referenced third party libraries are subject to the licenses set forth below.
 
-IMAGE TO REFERENCE ARCHITECTURE
-
-___
-
-&copy; 2022 Databricks, Inc. All rights reserved. The source in this notebook is provided subject to the Databricks License [https://databricks.com/db-license-source].  All included or referenced third party libraries are subject to the licenses set forth below.
-
-| library                                | description             | license    | source                                              |
-|----------------------------------------|-------------------------|------------|-----------------------------------------------------|
-| PyYAML                                 | Reading Yaml files      | MIT        | https://github.com/yaml/pyyaml                      |
 
 ## Getting started
 
