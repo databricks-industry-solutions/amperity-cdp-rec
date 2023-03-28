@@ -3,7 +3,7 @@
 [![CLOUD](https://img.shields.io/badge/CLOUD-ALL-blue?logo=googlecloud&style=for-the-badge)](https://cloud.google.com/databricks)
 [![POC](https://img.shields.io/badge/POC-10_days-green?style=for-the-badge)](https://databricks.com/try-databricks)
 
-The data in the Amperity customer data platform (CDP) is useful for enabling a wide range of customer experiences. Customer identity resolution, data cleansing, and data unification provided by Amperity provides a very accurate, first-party customer data foundation which can be used to drive a wide range of customer insights and customer engagements. 
+Data in the Amperity customer data platform (CDP) is useful for enabling a wide range of customer experiences. Customer identity resolution, data cleansing, and data unification provided by Amperity provides a very accurate, first-party customer data foundation which can be used to drive a wide range of customer insights and customer engagements. 
 
 Using these data, we may wish to estimate customer lifetime value, derive behavioral segments and estimate product propensities, all capabilities we can tap into with the Amperity CDP. For some capabilities, such as the generation of per-user product recommendations, we need to develop specialized models leveraging capabilities such as those found in Databricks. 
 
