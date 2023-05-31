@@ -4,11 +4,11 @@
 # COMMAND ----------
 
 # MAGIC %md ##Introduction
-# MAGIC 
+# MAGIC
 # MAGIC The data in the Amperity customer data platform (CDP) is useful for enabling a wide range of customer experiences. Customer identity resolution, data cleansing, and data unification provided by Amperity provides a very accurate, first-party customer data foundation which can be used to drive a wide range of customer insights and customer engagements. 
-# MAGIC 
+# MAGIC
 # MAGIC Using these data, we may wish to estimate customer lifetime value, derive behavioral segments and estimate product propensities, all capabilities we can tap into with the Amperity CDP. For some capabilities, such as the generation of per-user product recommendations, we need to develop specialized models leveraging capabilities such as those found in Databricks. 
-# MAGIC 
+# MAGIC
 # MAGIC In this notebook, we will demonstrate how to publish customer purchase history data from the Amperity CDP to Databricks to enable the training of a simple matrix factorization model. Recommendations produced by the model will then be published back to the CDP to enable any number of personalized interactions with our customers.  This notebook will borrow heavily from the previously published notebooks on matrix factorization available [here](https://www.databricks.com/blog/2023/01/06/products-we-think-you-might-generating-personalized-recommendations.html). Those interested into diving in the details of building such a model should review those notebooks and the accompanying blog.
 
 # COMMAND ----------
@@ -34,7 +34,7 @@ import random
 config = {}
 
 # identify database
-config['database'] = 'amperity'
+config['database'] = 'amperity_als'
 
 # name of model to register 
 config['model name'] = 'amperity-als'
@@ -45,8 +45,9 @@ config['num_products_to_recommend'] = 25
 # COMMAND ----------
 
 # DBTITLE 1,Set Database and MLFlow Experiment
-# create database if not exists
-_ = spark.sql('create database if not exists {0}'.format(config['database']))
+# reinitialize database if exists
+_ = spark.sql('drop database if exists {0} cascade'.format(config['database']))
+_ = spark.sql('create database {0}'.format(config['database']))
 
 # set current datebase context
 _ = spark.catalog.setCurrentDatabase(config['database'])
@@ -58,16 +59,16 @@ mlflow.set_experiment('/Users/{}/amperity_als'.format(username))
 # COMMAND ----------
 
 # MAGIC %md ##Step 1: Import Purchase History from Amperity
-# MAGIC 
+# MAGIC
 # MAGIC Our first step starts in the Amperity environment. Here, we will configure Amperity to publish data to a Databricks Delta table.  Details on how to do this work are found [here](https://docs.amperity.com/datagrid/destination_databricks_delta_table.html). </p>
-# MAGIC 
+# MAGIC
 # MAGIC <img src='https://brysmiwasb.blob.core.windows.net/demos/images/amp-db-destination.png'>
 
 # COMMAND ----------
 
 # MAGIC %md With the Databricks Delta table destination configured, we can then build a SQL statement to access data from within the Amperity CDP:
 # MAGIC </p>
-# MAGIC 
+# MAGIC
 # MAGIC ```
 # MAGIC SELECT
 # MAGIC   amperity_id AS "amperity_id",
@@ -81,13 +82,13 @@ mlflow.set_experiment('/Users/{}/amperity_als'.format(username))
 # MAGIC   Unified_Itemized_Transactions
 # MAGIC WHERE order_datetime >= CAST(CURRENT_DATE - interval '1' year AS date)
 # MAGIC ```
-# MAGIC 
+# MAGIC
 # MAGIC With this query, we have retrieved some fields from the Amperity [*Unified_Itemized_Transactions (UIT)* table](https://docs.amperity.com/datagrid/table_unified_itemized_transactions.html). The UIT table contains every row of transactional data summarized to the item level.  The *amperity_id* field represents the resolved customer identity associated with each order.
-# MAGIC 
+# MAGIC
 # MAGIC **NOTE** Please note that when setting up this query, you can setup an automatic push to the Databricks Delta table destination as part of the orchestration configuration settings.
-# MAGIC 
+# MAGIC
 # MAGIC </p>
-# MAGIC 
+# MAGIC
 # MAGIC <img src='https://brysmiwasb.blob.core.windows.net/demos/images/amp-select-uit-data.png'>
 
 # COMMAND ----------
@@ -107,23 +108,23 @@ mlflow.set_experiment('/Users/{}/amperity_als'.format(username))
 # COMMAND ----------
 
 # MAGIC %md ##Step 2: Assemble Ratings
-# MAGIC 
+# MAGIC
 # MAGIC Our matrix factorization recommender requires three elements:
 # MAGIC </p>
-# MAGIC 
+# MAGIC
 # MAGIC * user identifier
 # MAGIC * product identifier
 # MAGIC * user-product rating
-# MAGIC 
+# MAGIC
 # MAGIC These elements will form a matrix of known *ratings* from which we can extract latent factors.  Those latent factors can then be used to estimate ratings for user-product combinations not yet observed, providing the basis for our recommendations.
-# MAGIC 
+# MAGIC
 # MAGIC The Spark implementation of this recommender is referred to as [*ALS*](https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.ml.recommendation.ALS.html), a reference to the *alternating least squares* algorithm used to perform the matrix factorization work. This algorithm requires user identities and product identities to be supplied as integer values.  To address this, we will quickly build as user and product lookup mapping the string-based *amperity_id* and *product_id* fields, representing our user and product identifiers respectively, to integer values.  Please note we are using an [identity column](https://www.databricks.com/blog/2022/08/08/identity-columns-to-generate-surrogate-keys-are-now-available-in-a-lakehouse-near-you.html) in our lookup table definition to auto-generate those integer values:
 
 # COMMAND ----------
 
 # DBTITLE 1,Build User Lookup
 # MAGIC %sql
-# MAGIC 
+# MAGIC
 # MAGIC CREATE OR REPLACE TABLE user_lookup (
 # MAGIC   user_id BIGINT GENERATED ALWAYS AS IDENTITY,
 # MAGIC   amperity_id STRING
@@ -140,7 +141,7 @@ mlflow.set_experiment('/Users/{}/amperity_als'.format(username))
 
 # DBTITLE 1,Build Product Lookup
 # MAGIC %sql
-# MAGIC 
+# MAGIC
 # MAGIC CREATE OR REPLACE TABLE item_lookup (
 # MAGIC   item_id BIGINT GENERATED ALWAYS AS IDENTITY,
 # MAGIC   product_id STRING
@@ -204,7 +205,7 @@ display(ratings)
 # COMMAND ----------
 
 # MAGIC %md ##Step 3: Train & Persist Model
-# MAGIC 
+# MAGIC
 # MAGIC With our dataset prepared, we typically would perform a hyperparameter tuning exercise in order to identify an ideal set of hyperparameter values for our model. The identified values could then be used for multiple training/re-training cycles making this an occasional part of most recommender training workflows. You can review an example of what this would look like by reviewing the solution accelerator referenced earlier in this notebook.  But to keep our focus on our integration with Amperity, we will simply report the results of a hyperparameter tuning exercise performed outside of this notebook:
 
 # COMMAND ----------
@@ -287,7 +288,7 @@ with mlflow.start_run(run_name='als_full_model'):
 # COMMAND ----------
 
 # MAGIC %md ##Step 5: Generate Recommendations 
-# MAGIC 
+# MAGIC
 # MAGIC Using our trained model, we can now generate some number of product recommendations for each user in our dataset. Please note that these recommendations are returned as part of an array.  We are using the *posexplode* function to move each element in the array to a new record and then cleaning up the names of columns in the exploded data:
 
 # COMMAND ----------
@@ -368,10 +369,10 @@ _ = (
 # COMMAND ----------
 
 # MAGIC %md ##Step 6: Publish Recommendations to Amperity
-# MAGIC 
+# MAGIC
 # MAGIC Once the recommendations data has been generated you can publish the recommendation data available to Amperity for a variety of activation use cases. Configure the [Pull from Databricks](https://docs.amperity.com/datagrid/source_databricks.html) integration to retrieve the data from the set of recommendations persisted in the last step.
 # MAGIC </p>
-# MAGIC 
+# MAGIC
 # MAGIC <img src='https://brysmiwasb.blob.core.windows.net/demos/images/db-feed-ingest-config.png'>
 
 # COMMAND ----------
