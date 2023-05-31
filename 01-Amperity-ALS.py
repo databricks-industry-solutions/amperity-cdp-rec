@@ -45,9 +45,8 @@ config['num_products_to_recommend'] = 25
 # COMMAND ----------
 
 # DBTITLE 1,Set Database and MLFlow Experiment
-# reinitialize database if exists
-_ = spark.sql('drop database if exists {0} cascade'.format(config['database']))
-_ = spark.sql('create database {0}'.format(config['database']))
+# create database if not exists
+_ = spark.sql('create database if not exists {0}'.format(config['database']))
 
 # set current datebase context
 _ = spark.catalog.setCurrentDatabase(config['database'])
