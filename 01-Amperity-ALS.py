@@ -34,7 +34,7 @@ import random
 config = {}
 
 # identify database
-config['database'] = 'amperity_als'
+config['database'] = 'amperity'
 
 # name of model to register 
 config['model name'] = 'amperity-als'
