@@ -123,6 +123,7 @@ mlflow.set_experiment('/Users/{}/amperity_als'.format(username))
 
 # DBTITLE 1,Build User Lookup
 # MAGIC %sql
+# MAGIC SET spark.databricks.delta.commitValidation.enabled=false; -- this setting is required for the table creation and insert below
 # MAGIC
 # MAGIC CREATE OR REPLACE TABLE user_lookup (
 # MAGIC   user_id BIGINT GENERATED ALWAYS AS IDENTITY,
